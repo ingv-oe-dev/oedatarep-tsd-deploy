@@ -1,0 +1,35 @@
+version: '2.2'
+services:
+  cache:
+    extends:
+      file: oedatarep-invenio-rdm/docker-services.yml
+      service: cache
+  mq:
+    extends:
+      file: oedatarep-invenio-rdm/docker-services.yml
+      service: mq
+  es:
+    extends:
+      file: oedatarep-invenio-rdm/docker-services.yml
+      service: es
+  kibana:
+    extends:
+      file: oedatarep-invenio-rdm/docker-services.yml
+      service: kibana
+  pgadmin:
+    extends:
+      file: docker-services.yml
+      service: pgadmin
+  # Shared Postgres DB 
+  db:
+    extends:
+      file: docker-services.yml
+      service: db
+    volumes:
+      - work_data:/var/lib/postgresql/data
+volumes:
+  work_data:
+networks:
+  default:
+    name: datarep_net
+    external: true

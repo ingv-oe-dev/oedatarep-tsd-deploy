@@ -1,0 +1,5 @@
+.invenio
+.invenio.private
+example
+*.crt
+*.key
