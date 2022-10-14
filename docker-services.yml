@@ -40,8 +40,9 @@ services:
       - "80"
       - "443"
   db:
-    build:
-      context: docker/timescale/
+    # build:
+    #   context: docker/timescale/
+    image: timescale/timescaledb-ha:pg14.2-ts2.6.0-oss-latest
     restart: always
     environment:
       POSTGRES_USER: "${DB_USER}"
@@ -78,4 +79,4 @@ services:
       - "8000:80"
     working_dir: /var/www/html/tsdws
     volumes:
-      - ./tsdsystem/src:/var/www/html 
+      - ./tsdsystem/src:/var/www/html
