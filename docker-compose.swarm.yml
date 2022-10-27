@@ -1,0 +1,252 @@
+# Example of a full infrastructure stack
+#
+# Note, this file is not suitable for a production deployment. It is only an
+# example of all the infrastructure components needed in a real production
+# deployment.
+#
+# Usage::
+#
+#   $ docker-compose up -f docker-compose.full.yml -d
+#
+# Following services are included:
+# - Frontend: Nginx (exposed ports: 40 and 443)
+# - UI application: UWSGI (not exposed)
+# - API application: UWSGI (not exposed)
+# - Cache: Redis (exposed port: 6379)
+# - DB: (PostgresSQL/MySQL) (exposed port: 5432 or 3306)
+# - Message queue: RabbitMQ (exposed ports: 5672, 15672)
+# - Elasticsearch (exposed ports: 9200, 9300)
+# - Kibana (view ES indexes) (exposed ports: 5601)
+#
+version: '3'
+services:
+  cache:
+    image: redis
+    restart: "unless-stopped"
+    read_only: true
+    ports:
+      - "6379:6379"
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.tier == backend"
+  db:
+    # image: postgres:12.4
+    image: timescale/timescaledb-ha:pg14.2-ts2.6.0-oss-latest
+    restart: "unless-stopped"
+    environment:
+      - "POSTGRES_USER=${DB_USER}"
+      - "POSTGRES_PASSWORD=${DB_PASSWORD}"
+      # - "POSTGRES_DB=oedatarep-invenio-rdm"
+    ports:
+      - "5432:5432"
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.tier == backend"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  mq:
+    image: rabbitmq:3.8-management
+    restart: "unless-stopped"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.tier == backend"
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+    restart: "unless-stopped"
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+      placement:
+        constraints:
+          - "node.labels.tier == backend"
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:7.10.2
+    environment:
+      - "ELASTICSEARCH_HOSTS=http://es:9200"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "5601:5601"
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.tier == frontend"
+  pgadmin:
+    image: dpage/pgadmin4:5.2
+    restart: "unless-stopped"
+    ports:
+      - "5050:80"
+      - "5051:443"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "${PGADMIN_EMAIL}"
+      PGADMIN_DEFAULT_PASSWORD: "${PGADMIN_PASSWORD}"
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.tier == backend"
+  # Frontend
+  frontend:
+    build: ./docker/nginx/
+    image: 172.22.122.21:5000/oedatarep-invenio-rdm-frontend
+    restart: "unless-stopped"
+    ports:
+      - "80:80"
+      - "443:443"
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.tier == frontend"
+    volumes:
+      - static_data:/opt/invenio/var/instance/static
+    depends_on:
+      - web-ui
+      - web-api
+  # UI Application
+  web-ui:
+    build:
+      context: ./oedatarep-invenio-rdm
+      args:
+        - ENVIRONMENT=DEV
+        - OEDATAREP_RELEASE=v0.1.4rc
+    restart: "unless-stopped"
+    environment:
+      - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
+      - "INVENIO_BROKER_URL=amqp://guest:guest@mq:5672/"
+      - "INVENIO_CACHE_REDIS_URL=redis://cache:6379/0"
+      - "INVENIO_CACHE_TYPE=redis"
+      - "INVENIO_CELERY_BROKER_URL=amqp://guest:guest@mq:5672/"
+      - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
+      - "INVENIO_SEARCH_ELASTIC_HOSTS=['es:9200']"
+      - "INVENIO_SECRET_KEY=CHANGE_ME"
+      - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://oedatarep-invenio-rdm:oedatarep-invenio-rdm@db/oedatarep-invenio-rdm"
+      - "INVENIO_WSGI_PROXIES=2"
+      - "INVENIO_RATELIMIT_STORAGE_URL=redis://cache:6379/3"
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.tier == frontend"
+    command: ["uwsgi /opt/invenio/var/instance/uwsgi_ui.ini"]
+    image: 172.22.122.21:5000/oedatarep-invenio-rdm:latest
+    ports:
+      - "5000"
+    volumes:
+      - ./oedatarep-invenio-rdm/invenio.cfg:/opt/invenio/var/instance/invenio.cfg
+      - static_data:/opt/invenio/var/instance/static
+      - uploaded_data:/opt/invenio/var/instance/data
+      - archived_data:/opt/invenio/var/instance/archive
+
+  # API Rest Application
+  web-api:
+    build:
+      context: ./oedatarep-invenio-rdm
+      args:
+        - ENVIRONMENT=DEV
+        - OEDATAREP_RELEASE=v0.1.4rc
+    image: 172.22.122.21:5000/oedatarep-invenio-rdm
+    restart: "unless-stopped"
+    environment:
+      - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
+      - "INVENIO_BROKER_URL=amqp://guest:guest@mq:5672/"
+      - "INVENIO_CACHE_REDIS_URL=redis://cache:6379/0"
+      - "INVENIO_CACHE_TYPE=redis"
+      - "INVENIO_CELERY_BROKER_URL=amqp://guest:guest@mq:5672/"
+      - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
+      - "INVENIO_SEARCH_ELASTIC_HOSTS=['es:9200']"
+      - "INVENIO_SECRET_KEY=CHANGE_ME"
+      - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://oedatarep-invenio-rdm:oedatarep-invenio-rdm@db/oedatarep-invenio-rdm"
+      - "INVENIO_WSGI_PROXIES=2"
+      - "INVENIO_RATELIMIT_STORAGE_URL=redis://cache:6379/3"
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.tier == frontend"
+    command: ["uwsgi /opt/invenio/var/instance/uwsgi_rest.ini"]
+    ports:
+      - "5000"
+    volumes:
+      - ./oedatarep-invenio-rdm/invenio.cfg:/opt/invenio/var/instance/invenio.cfg
+      - uploaded_data:/opt/invenio/var/instance/data
+      - archived_data:/opt/invenio/var/instance/archive
+
+  # Worker
+  worker:
+    build:
+      context: ./oedatarep-invenio-rdm
+      args:
+        - ENVIRONMENT=DEV
+        - OEDATAREP_RELEASE=v0.1.4rc
+    image: 172.22.122.21:5000/oedatarep-invenio-rdm
+    restart: "unless-stopped"
+    environment:
+      - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
+      - "INVENIO_BROKER_URL=amqp://guest:guest@mq:5672/"
+      - "INVENIO_CACHE_REDIS_URL=redis://cache:6379/0"
+      - "INVENIO_CACHE_TYPE=redis"
+      - "INVENIO_CELERY_BROKER_URL=amqp://guest:guest@mq:5672/"
+      - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
+      - "INVENIO_SEARCH_ELASTIC_HOSTS=['es:9200']"
+      - "INVENIO_SECRET_KEY=CHANGE_ME"
+      - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://oedatarep-invenio-rdm:oedatarep-invenio-rdm@db/oedatarep-invenio-rdm"
+      - "INVENIO_WSGI_PROXIES=2"
+      - "INVENIO_RATELIMIT_STORAGE_URL=redis://cache:6379/3"
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.tier == frontend"
+    command: ["celery -A invenio_app.celery worker -B --loglevel=INFO"]
+    volumes:
+      - ./oedatarep-invenio-rdm/invenio.cfg:/opt/invenio/var/instance/invenio.cfg
+      - uploaded_data:/opt/invenio/var/instance/data
+    depends_on:
+      - "es"
+      - "cache"
+      - "db"
+      - "mq"
+
+  # TSD_APP_FE
+  tsd_app:
+    build:
+      context: tsdsystem/docker/php/
+    image: 172.22.122.21:5000/tsd
+    tty: true
+    depends_on:
+      - db
+    environment:
+      DB_HOST: "${DB_HOST}"
+      DB_PORT: "${DB_PORT}"
+      DB_USER: "${TSD_DB_USER}"
+      DB_PASSWORD: "${TSD_DB_PASSWORD}"
+      DB_NAME: "${TSD_DB}"
+      SERVER_KEY: "${SERVER_KEY}"
+      APP_ALLOWED_HOSTS: "${APP_ALLOWED_HOSTS}"
+    ports:
+      - "8000:80"
+    working_dir: /var/www/html/tsdws
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.tier == frontend"
+    volumes:
+      - ./tsdsystem/src:/var/www/html
+volumes:
+  static_data:
+  uploaded_data:
+  archived_data:
+  postgres_data:

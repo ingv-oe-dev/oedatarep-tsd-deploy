@@ -1,7 +1,7 @@
-version: '2.2'
+version: '3'
 services:
   init_db:
-    image: governmentpaas/psql:latest #timescale/timescaledb-ha:pg14.2-ts2.6.0-oss-latest
+    image: governmentpaas/psql:latest
     environment:
       DB_HOST: "${DB_HOST}"
       DB_PORT: "${DB_PORT}"
@@ -20,7 +20,38 @@ services:
       - ./scripts:/scripts
       - ./docker/timescale/sql:/sql_create
       - ./tsdsystem/docker/timescale/sql:/sql_tsd
-networks:
-  default:
-    name: datarep_net
-    external: true
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.tier == backend"
+      replicas: 1
+      restart_policy:
+        condition: none
+  init_invenio:
+    image: 172.22.122.21:5000/oedatarep-invenio-rdm
+    environment:
+      - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
+      - "INVENIO_BROKER_URL=amqp://guest:guest@mq:5672/"
+      - "INVENIO_CACHE_REDIS_URL=redis://cache:6379/0"
+      - "INVENIO_CACHE_TYPE=redis"
+      - "INVENIO_CELERY_BROKER_URL=amqp://guest:guest@mq:5672/"
+      - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
+      - "INVENIO_SEARCH_ELASTIC_HOSTS=['es:9200']"
+      - "INVENIO_SECRET_KEY=CHANGE_ME"
+      - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://oedatarep-invenio-rdm:oedatarep-invenio-rdm@db/oedatarep-invenio-rdm"
+      - "INVENIO_WSGI_PROXIES=2"
+      - "INVENIO_RATELIMIT_STORAGE_URL=redis://cache:6379/3"
+      - "IRDM_ADMIN_USER=${IRDM_ADMIN_USER}"
+      - "IRDM_ADMIN_PASSWORD=${IRDM_ADMIN_PASSWORD}"
+    tty: true
+    working_dir: /
+    command: ["/bin/sh", "/scripts/initinvenio.sh"]
+    volumes:
+      - ./scripts:/scripts
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.tier == backend"
+      replicas: 1
+      restart_policy:
+        condition: none
