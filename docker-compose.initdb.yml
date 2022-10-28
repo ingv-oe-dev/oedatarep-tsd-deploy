@@ -23,7 +23,7 @@ services:
     deploy:
       placement:
         constraints:
-          - "node.labels.tier == backend"
+          - "node.labels.tier == frontend"
       replicas: 1
       restart_policy:
         condition: none
@@ -51,7 +51,7 @@ services:
     deploy:
       placement:
         constraints:
-          - "node.labels.tier == backend"
+          - "node.labels.tier == frontend"
       replicas: 1
       restart_policy:
         condition: none
