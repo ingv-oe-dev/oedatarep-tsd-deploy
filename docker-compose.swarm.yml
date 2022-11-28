@@ -45,7 +45,7 @@ services:
         constraints:
           - "node.labels.tier == backend"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/home/postgres/pgdata/data
   mq:
     image: rabbitmq:3.8-management
     restart: "unless-stopped"
@@ -77,6 +77,8 @@ services:
       placement:
         constraints:
           - "node.labels.tier == backend"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
   kibana:
     image: docker.elastic.co/kibana/kibana-oss:7.10.2
     environment:
@@ -104,7 +106,7 @@ services:
   # Frontend
   frontend:
     build: ./docker/nginx/
-    image: 172.22.122.21:5000/oedatarep-invenio-rdm-frontend
+    image: 172.22.122.101:5000/oedatarep-invenio-rdm-frontend
     restart: "unless-stopped"
     ports:
       - "80:80"
@@ -143,7 +145,7 @@ services:
         constraints:
           - "node.labels.tier == frontend"
     command: ["uwsgi /opt/invenio/var/instance/uwsgi_ui.ini"]
-    image: 172.22.122.21:5000/oedatarep-invenio-rdm:latest
+    image: 172.22.122.101:5000/oedatarep-invenio-rdm:latest
     ports:
       - "5000"
     volumes:
@@ -159,7 +161,7 @@ services:
       args:
         - ENVIRONMENT=DEV
         - OEDATAREP_RELEASE=v0.1.4rc
-    image: 172.22.122.21:5000/oedatarep-invenio-rdm
+    image: 172.22.122.101:5000/oedatarep-invenio-rdm
     restart: "unless-stopped"
     environment:
       - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
@@ -192,7 +194,7 @@ services:
       args:
         - ENVIRONMENT=DEV
         - OEDATAREP_RELEASE=v0.1.4rc
-    image: 172.22.122.21:5000/oedatarep-invenio-rdm
+    image: 172.22.122.101:5000/oedatarep-invenio-rdm
     restart: "unless-stopped"
     environment:
       - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
@@ -219,12 +221,13 @@ services:
       - "cache"
       - "db"
       - "mq"
-
+    extra_hosts:
+      - "oedatarep.ct.ingv.it:172.22.122.101"
   # TSD_APP_FE
   tsd_app:
     build:
       context: tsdsystem/docker/php/
-    image: 172.22.122.21:5000/tsd
+    image: 172.22.122.101:5000/tsd
     tty: true
     depends_on:
       - db
@@ -250,3 +253,4 @@ volumes:
   uploaded_data:
   archived_data:
   postgres_data:
+  es_data:
