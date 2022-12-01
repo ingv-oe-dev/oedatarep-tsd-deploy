@@ -126,7 +126,7 @@ services:
       context: ./oedatarep-invenio-rdm
       args:
         - ENVIRONMENT=DEV
-        - OEDATAREP_RELEASE=v0.1.4rc
+        - OEDATAREP_RELEASE=v0.2
     restart: "unless-stopped"
     environment:
       - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
@@ -160,7 +160,7 @@ services:
       context: ./oedatarep-invenio-rdm
       args:
         - ENVIRONMENT=DEV
-        - OEDATAREP_RELEASE=v0.1.4rc
+        - OEDATAREP_RELEASE=v0.2
     image: 172.22.122.101:5000/oedatarep-invenio-rdm
     restart: "unless-stopped"
     environment:
@@ -193,7 +193,7 @@ services:
       context: ./oedatarep-invenio-rdm
       args:
         - ENVIRONMENT=DEV
-        - OEDATAREP_RELEASE=v0.1.4rc
+        - OEDATAREP_RELEASE=v0.2
     image: 172.22.122.101:5000/oedatarep-invenio-rdm
     restart: "unless-stopped"
     environment:
