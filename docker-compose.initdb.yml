@@ -10,6 +10,9 @@ services:
       TSD_DB: "${TSD_DB}"
       TSD_DB_USER: "${TSD_DB_USER}"
       TSD_DB_PASSWORD: "${TSD_DB_PASSWORD}"
+      DATAREP_DB: "${DATAREP_DB}"
+      DATAREP_DB_USER: "${DATAREP_DB_USER}"
+      DATAREP_DB_PASSWORD: "${DATAREP_DB_PASSWORD}"
       POSTGRES_USER: "${DB_USER}"
       POSTGRES_PASSWORD: "${DB_PASSWORD}"
       PGPASSWORD: "${DB_PASSWORD}"
@@ -28,7 +31,7 @@ services:
       restart_policy:
         condition: none
   init_invenio:
-    image: 172.22.122.101:5000/oedatarep-invenio-rdm
+    image: ${REGISTRY_URL}/oedatarep-invenio-rdm
     environment:
       - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
       - "INVENIO_BROKER_URL=amqp://guest:guest@mq:5672/"
@@ -38,7 +41,7 @@ services:
       - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
       - "INVENIO_SEARCH_ELASTIC_HOSTS=['es:9200']"
       - "INVENIO_SECRET_KEY=CHANGE_ME"
-      - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://oedatarep-invenio-rdm:oedatarep-invenio-rdm@db/oedatarep-invenio-rdm"
+      - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${DATAREP_DB_USER}:${DATAREP_DB_PASSWORD}@db/${DATAREP_DB}"
       - "INVENIO_WSGI_PROXIES=2"
       - "INVENIO_RATELIMIT_STORAGE_URL=redis://cache:6379/3"
       - "IRDM_ADMIN_USER=${IRDM_ADMIN_USER}"
