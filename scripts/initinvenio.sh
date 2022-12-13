@@ -8,6 +8,7 @@
 /usr/local/bin/invenio roles create admin
 /usr/local/bin/invenio users create --password ${IRDM_ADMIN_PASSWORD} --active ${IRDM_ADMIN_USER}
 /usr/local/bin/invenio roles add ${IRDM_ADMIN_USER} admin
+/usr/local/bin/invenio access allow superuser-access role admin
 
 /usr/local/bin/invenio files location create datalocation file:///opt/invenio/var/instance/data --default
 
