@@ -137,7 +137,7 @@ services:
       - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
       - "INVENIO_SEARCH_ELASTIC_HOSTS=['es:9200']"
       - "INVENIO_SECRET_KEY=CHANGE_ME"
-      - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://oedatarep-invenio-rdm:oedatarep-invenio-rdm@db/oedatarep-invenio-rdm"
+      - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${DATAREP_DB_USER}:${DATAREP_DB_PASSWORD}@db/${DATAREP_DB}"
       - "INVENIO_WSGI_PROXIES=2"
       - "INVENIO_RATELIMIT_STORAGE_URL=redis://cache:6379/3"
     deploy:
@@ -172,7 +172,7 @@ services:
       - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
       - "INVENIO_SEARCH_ELASTIC_HOSTS=['es:9200']"
       - "INVENIO_SECRET_KEY=CHANGE_ME"
-      - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://oedatarep-invenio-rdm:oedatarep-invenio-rdm@db/oedatarep-invenio-rdm"
+      - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${DATAREP_DB_USER}:${DATAREP_DB_PASSWORD}@db/${DATAREP_DB}"
       - "INVENIO_WSGI_PROXIES=2"
       - "INVENIO_RATELIMIT_STORAGE_URL=redis://cache:6379/3"
     deploy:
@@ -205,7 +205,7 @@ services:
       - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
       - "INVENIO_SEARCH_ELASTIC_HOSTS=['es:9200']"
       - "INVENIO_SECRET_KEY=CHANGE_ME"
-      - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://oedatarep-invenio-rdm:oedatarep-invenio-rdm@db/oedatarep-invenio-rdm"
+      - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${DATAREP_DB_USER}:${DATAREP_DB_PASSWORD}@db/${DATAREP_DB}"
       - "INVENIO_WSGI_PROXIES=2"
       - "INVENIO_RATELIMIT_STORAGE_URL=redis://cache:6379/3"
     deploy:
