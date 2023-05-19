@@ -249,6 +249,35 @@ services:
           - "node.labels.tier == frontend"
     volumes:
       - ./tsdsystem/src:/var/www/html
+  s3:
+    image: bitnami/minio:2023.5.4-debian-11-r4
+    restart: "unless-stopped"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      BITNAMI_DEBUG: "true"
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_SERVER_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SERVER_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_DEFAULT_BUCKETS: ${MINIO_DEFAULT_BUCKETS}
+      MINIO_SCHEME: "https"
+      MINIO_SKIP_CLIENT: "yes"
+      MINIO_BROWSER_REDIRECT_URL: "${MINIO_BROWSER_REDIRECT_URL}"
+      MINIO_SERVER_URL: "${MINIO_SERVER_URL}"
+    volumes:
+      - /mnt/data:/data
+      - /home/datarep/minio-certs:/certs
+    healthcheck:
+      test: ["CMD", "curl", "-k", "-f", "https://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.tier == backend"
 volumes:
   static_data:
   uploaded_data:
