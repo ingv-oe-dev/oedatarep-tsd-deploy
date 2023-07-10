@@ -220,7 +220,7 @@ services:
       - "db"
       - "mq"
     extra_hosts:
-      - "oedatarep.ct.ingv.it:172.22.122.101"
+      - "oedatarep.ct.ingv.it:192.168.100.10"
   # TSD_APP_FE
   tsd_app:
     build:
