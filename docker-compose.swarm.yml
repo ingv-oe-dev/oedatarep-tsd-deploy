@@ -54,20 +54,26 @@ services:
       placement:
         constraints:
           - "node.labels.tier == backend"
-  es:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+  search:
+    image: opensearchproject/opensearch:2.3.0
     restart: "unless-stopped"
     environment:
+      # settings only for development. DO NOT use in production!
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-      - discovery.type=single-node
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+      - "DISABLE_SECURITY_PLUGIN=true"
+      - "discovery.type=single-node"
     ulimits:
       memlock:
         soft: -1
         hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
     ports:
       - "9200:9200"
-      - "9300:9300"
+      - "9600:9600"
     deploy:
       resources:
         limits:
@@ -77,13 +83,16 @@ services:
           - "node.labels.tier == backend"
     volumes:
       - es_data:/usr/share/elasticsearch/data
-  kibana:
-    image: docker.elastic.co/kibana/kibana-oss:7.10.2
-    environment:
-      - "ELASTICSEARCH_HOSTS=http://es:9200"
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.3.0
     ports:
       - "5601:5601"
+    expose:
+      - "5601"
+    environment:
+      # settings only for development. DO NOT use in production!
+      - 'OPENSEARCH_HOSTS=["http://search:9200"]'
+      - "DISABLE_SECURITY_DASHBOARDS_PLUGIN=true"
     deploy:
       placement:
         constraints:
@@ -133,7 +142,7 @@ services:
       - "INVENIO_CACHE_TYPE=redis"
       - "INVENIO_CELERY_BROKER_URL=amqp://guest:guest@mq:5672/"
       - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
-      - "INVENIO_SEARCH_ELASTIC_HOSTS=['es:9200']"
+      - "INVENIO_SEARCH_ELASTIC_HOSTS=['search:9200']"
       - "INVENIO_SECRET_KEY=CHANGE_ME"
       - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${DATAREP_DB_USER}:${DATAREP_DB_PASSWORD}@db/${DATAREP_DB}"
       - "INVENIO_WSGI_PROXIES=2"
@@ -168,7 +177,7 @@ services:
       - "INVENIO_CACHE_TYPE=redis"
       - "INVENIO_CELERY_BROKER_URL=amqp://guest:guest@mq:5672/"
       - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
-      - "INVENIO_SEARCH_ELASTIC_HOSTS=['es:9200']"
+      - "INVENIO_SEARCH_ELASTIC_HOSTS=['search:9200']"
       - "INVENIO_SECRET_KEY=CHANGE_ME"
       - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${DATAREP_DB_USER}:${DATAREP_DB_PASSWORD}@db/${DATAREP_DB}"
       - "INVENIO_WSGI_PROXIES=2"
@@ -201,7 +210,7 @@ services:
       - "INVENIO_CACHE_TYPE=redis"
       - "INVENIO_CELERY_BROKER_URL=amqp://guest:guest@mq:5672/"
       - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
-      - "INVENIO_SEARCH_ELASTIC_HOSTS=['es:9200']"
+      - "INVENIO_SEARCH_ELASTIC_HOSTS=['search:9200']"
       - "INVENIO_SECRET_KEY=CHANGE_ME"
       - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${DATAREP_DB_USER}:${DATAREP_DB_PASSWORD}@db/${DATAREP_DB}"
       - "INVENIO_WSGI_PROXIES=2"
