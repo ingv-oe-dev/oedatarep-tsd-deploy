@@ -134,6 +134,8 @@ services:
       args:
         - ENVIRONMENT=DEV
         - OEDATAREP_RELEASE=${IMAGE_TAG}
+        - NVM_VERS=v0.39.5
+        - NODE_VERS=v14.21.3
     restart: "unless-stopped"
     environment:
       - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
