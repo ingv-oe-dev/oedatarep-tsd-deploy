@@ -170,6 +170,8 @@ services:
       args:
         - ENVIRONMENT=DEV
         - OEDATAREP_RELEASE=${IMAGE_TAG}
+        - NVM_VERS=${NVM_VERS}
+        - NODE_VERS=${NODE_VERS}
     image: ${REGISTRY_URL}/oedatarep-invenio-rdm:${IMAGE_TAG}
     restart: "unless-stopped"
     environment:
@@ -203,6 +205,8 @@ services:
       args:
         - ENVIRONMENT=DEV
         - OEDATAREP_RELEASE=${IMAGE_TAG}
+        - NVM_VERS=${NVM_VERS}
+        - NODE_VERS=${NODE_VERS}
     image: ${REGISTRY_URL}/oedatarep-invenio-rdm:${IMAGE_TAG}
     restart: "unless-stopped"
     environment:
