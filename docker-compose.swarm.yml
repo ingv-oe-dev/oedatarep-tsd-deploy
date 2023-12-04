@@ -124,7 +124,7 @@ services:
       context: ./oedatarep-invenio-rdm
       args:
         - ENVIRONMENT=DEV
-        - OEDATAREP_RELEASE=v0.2
+        - OEDATAREP_RELEASE=${IMAGE_TAG}
     restart: "unless-stopped"
     environment:
       - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
@@ -143,7 +143,7 @@ services:
         constraints:
           - "node.labels.tier == frontend"
     command: ["uwsgi /opt/invenio/var/instance/uwsgi_ui.ini"]
-    image: ${REGISTRY_URL}/oedatarep-invenio-rdm:latest
+    image: ${REGISTRY_URL}/oedatarep-invenio-rdm:${IMAGE_TAG}
     ports:
       - "5000"
     volumes:
@@ -158,8 +158,8 @@ services:
       context: ./oedatarep-invenio-rdm
       args:
         - ENVIRONMENT=DEV
-        - OEDATAREP_RELEASE=v0.2
-    image: ${REGISTRY_URL}/oedatarep-invenio-rdm
+        - OEDATAREP_RELEASE=${IMAGE_TAG}
+    image: ${REGISTRY_URL}/oedatarep-invenio-rdm:${IMAGE_TAG}
     restart: "unless-stopped"
     environment:
       - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
@@ -191,8 +191,8 @@ services:
       context: ./oedatarep-invenio-rdm
       args:
         - ENVIRONMENT=DEV
-        - OEDATAREP_RELEASE=v0.2
-    image: ${REGISTRY_URL}/oedatarep-invenio-rdm
+        - OEDATAREP_RELEASE=${IMAGE_TAG}
+    image: ${REGISTRY_URL}/oedatarep-invenio-rdm:${IMAGE_TAG}
     restart: "unless-stopped"
     environment:
       - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
