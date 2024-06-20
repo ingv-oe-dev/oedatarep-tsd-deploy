@@ -27,7 +27,7 @@ echo "Executing scripts from folder sql_tsd"
 echo "RUN init.sql"
 sed -i "s/CREATE DATABASE .*/CREATE DATABASE $TSD_DB/g" /sql_tsd/init.sql
 sed -i "s/connect .*/connect $TSD_DB/g" /sql_tsd/init.sql
-sed -i "s/\btsdsystem\b/$TSD_DB_USER/g" /sql_tsd/init.sql
+sed -i "s/\bTSD_DB_USER\b/$TSD_DB_USER/g" /sql_tsd/init.sql
 psql -h ${DB_HOST} -U ${DB_USER} < /sql_tsd/init.sql
 echo "END init.sql"
 
