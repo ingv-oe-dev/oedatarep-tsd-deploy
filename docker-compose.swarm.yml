@@ -18,7 +18,7 @@
 # - Elasticsearch (exposed ports: 9200, 9300)
 # - Kibana (view ES indexes) (exposed ports: 5601)
 #
-version: '3'
+version: '3.8'
 services:
   cache:
     image: redis
@@ -116,8 +116,14 @@ services:
     image: ${REGISTRY_URL}/oedatarep-invenio-rdm-frontend
     restart: "unless-stopped"
     ports:
-      - "80:80"
-      - "443:443"
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
     deploy:
       placement:
         constraints:
