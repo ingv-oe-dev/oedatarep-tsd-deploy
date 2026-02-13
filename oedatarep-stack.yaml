@@ -63,8 +63,6 @@ services:
       placement:
         constraints:
           - "node.labels.tier == backend"
-    volumes:
-      - os_data:/usr/share/elasticsearch/data
 
   opensearch-dashboards:
     image: opensearchproject/opensearch-dashboards:2.3.0
@@ -231,7 +229,6 @@ services:
 
 volumes:
   postgres_data:
-  os_data:
   static_data:
     external: true
     name: datarep_static_data
