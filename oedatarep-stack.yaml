@@ -121,7 +121,7 @@ services:
           - "node.labels.tier == frontend"
     command: ["uwsgi /opt/invenio/var/instance/uwsgi_ui.ini"]
     volumes:
-      - ./oedatarep-invenio-rdm/invenio.cfg:/opt/invenio/var/instance/invenio.cfg
+      - ./invenio.cfg:/opt/invenio/var/instance/invenio.cfg
       - static_data:/opt/invenio/var/instance/static
       - uploaded_data:/opt/invenio/var/instance/data
       - archived_data:/opt/invenio/var/instance/archive
@@ -152,7 +152,7 @@ services:
           - "node.labels.tier == frontend"
     command: ["uwsgi /opt/invenio/var/instance/uwsgi_rest.ini"]
     volumes:
-      - ./oedatarep-invenio-rdm/invenio.cfg:/opt/invenio/var/instance/invenio.cfg
+      - ./invenio.cfg:/opt/invenio/var/instance/invenio.cfg
       - uploaded_data:/opt/invenio/var/instance/data
       - archived_data:/opt/invenio/var/instance/archive
 
@@ -180,7 +180,7 @@ services:
           - "node.labels.tier == frontend"
     command: ["celery -A invenio_app.celery worker -B --loglevel=INFO"]
     volumes:
-      - ./oedatarep-invenio-rdm/invenio.cfg:/opt/invenio/var/instance/invenio.cfg
+      - ./invenio.cfg:/opt/invenio/var/instance/invenio.cfg
       - uploaded_data:/opt/invenio/var/instance/data
     depends_on:
       - "search"
@@ -221,13 +221,13 @@ services:
       tty: true
       working_dir: /
       entrypoint: ["/bin/sh", "-c"]
-      command: 
+      command:
         - |
           dnf install -y postgresql &&
           /bin/sh /scripts/initinvenio.sh
       volumes:
         - ./scripts:/scripts
-        - ./oedatarep-invenio-rdm/invenio.cfg:/opt/invenio/var/instance/invenio.cfg
+        - ./invenio.cfg:/opt/invenio/var/instance/invenio.cfg
 
 volumes:
   postgres_data:
