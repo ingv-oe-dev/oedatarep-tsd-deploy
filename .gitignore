@@ -3,3 +3,4 @@
 example
 *.crt
 *.key
+.env*
