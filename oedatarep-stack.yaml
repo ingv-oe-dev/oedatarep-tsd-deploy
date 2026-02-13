@@ -201,8 +201,8 @@ services:
       networks:
         - default # Vede db, search, redis, mq di questo stack
       environment:
-        - "POSTGRES_USER=${DATAREP_DB_USER}"
-        - "POSTGRES_PASSWORD=${DATAREP_DB_PASSWORD}"
+        - "DATAREP_DB_USER=${DATAREP_DB_USER}"
+        - "DATAREP_DB_PASSWORD=${DATAREP_DB_PASSWORD}"
         - "PGPASSWORD=${DATAREP_DB_PASSWORD}"
         - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
         - "INVENIO_BROKER_URL=amqp://guest:guest@mq:5672/"
