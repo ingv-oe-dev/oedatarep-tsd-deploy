@@ -94,7 +94,7 @@ services:
 
   # UI Application
   web-ui:
-    image: oedatarep-invenio-rdm:${IMAGE_TAG}
+    image: oedatarep/oedatarep-invenio-rdm:${IMAGE_TAG}
     networks:
       public_net:
         aliases:
@@ -128,7 +128,7 @@ services:
 
   # API Rest Application
   web-api:
-    image: oedatarep-invenio-rdm:${IMAGE_TAG}
+    image: oedatarep/oedatarep-invenio-rdm:${IMAGE_TAG}
     networks:
       public_net:
         aliases:
@@ -158,7 +158,7 @@ services:
 
   # Worker
   worker:
-    image: oedatarep-invenio-rdm:${IMAGE_TAG}
+    image: oedatarep/oedatarep-invenio-rdm:${IMAGE_TAG}
     restart: "unless-stopped"
     networks:
       - default
