@@ -44,5 +44,3 @@ echo "Index Search configuration..."
 /usr/local/bin/invenio rdm-records fixtures
 
 echo "==> Process ended with success!"s rebuild-index
-/usr/local/bin/invenio communities rebuild-index
-/usr/local/bin/invenio rdm-records fixtures
