@@ -159,7 +159,6 @@ services:
   # Worker
   worker:
     image: oedatarep/oedatarep-invenio-rdm:${IMAGE_TAG}
-    restart: "unless-stopped"
     networks:
       - default
       - public_net # Connesso alla pubblica se deve parlare con TSD
@@ -191,7 +190,7 @@ services:
     extra_hosts:
       - "sandbox-datarep-fe.ct.int.ingv.it:172.22.122.100"
   init_invenio:
-      image: ${REGISTRY_URL}/oedatarep-invenio-rdm:${IMAGE_TAG}
+      image: oedatarep/oedatarep-invenio-rdm:${IMAGE_TAG}
       deploy:
         replicas: 0  # <--- Spento di default
         restart_policy:
