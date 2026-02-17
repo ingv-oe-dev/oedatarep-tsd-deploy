@@ -17,11 +17,12 @@ services:
     environment:
       - "POSTGRES_USER=${DATAREP_DB_USER}"
       - "POSTGRES_PASSWORD=${DATAREP_DB_PASSWORD}"
+      - "POSTGRES_DB=${DATAREP_DB}"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
   cache:
-    image: redis
+    image: redis:7
     #read_only: true
     networks:
       - default
@@ -31,7 +32,7 @@ services:
           - "node.labels.tier == backend"
 
   mq:
-    image: rabbitmq:3.8-management
+    image: rabbitmq:3-management
     networks:
       - default
     deploy:
@@ -40,12 +41,13 @@ services:
           - "node.labels.tier == backend"
 
   search:
-    image: opensearchproject/opensearch:2.3.0
+    image: opensearchproject/opensearch:2.17.1
     networks:
       - default
     environment:
       - bootstrap.memory_lock=true
       - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_ADMIN_PASSWORD}"
       - "DISABLE_INSTALL_DEMO_CONFIG=true"
       - "DISABLE_SECURITY_PLUGIN=true"
       - "discovery.type=single-node"
@@ -65,7 +67,7 @@ services:
           - "node.labels.tier == backend"
 
   opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards:2.3.0
+    image: opensearchproject/opensearch-dashboards:2.17.1
     networks:
       - default
     environment:
@@ -77,7 +79,7 @@ services:
           - "node.labels.tier == frontend"
 
   pgadmin:
-    image: dpage/pgadmin4:5.2
+    image: dpage/pgadmin4:6
     networks:
       - default
     ports:
@@ -105,14 +107,12 @@ services:
       - "INVENIO_CACHE_TYPE=redis"
       - "INVENIO_CELERY_BROKER_URL=amqp://guest:guest@mq:5672/"
       - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
-      - "INVENIO_SEARCH_ELASTIC_HOSTS=['search:9200']"
+      - "INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL=redis://cache:6379/4"
+      - "INVENIO_SEARCH_HOSTS=['search:9200']"
       - "INVENIO_SECRET_KEY=CHANGE_ME"
-      # Nota: qui db risolve al postgres locale di questo stack
       - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${DATAREP_DB_USER}:${DATAREP_DB_PASSWORD}@db/${DATAREP_DB}"
       - "INVENIO_WSGI_PROXIES=2"
       - "INVENIO_RATELIMIT_STORAGE_URL=redis://cache:6379/3"
-      # Se serve contattare TSD:
-      # - "TSD_API_URL=http://tsd_service:80"
     deploy:
       placement:
         constraints:
@@ -139,7 +139,8 @@ services:
       - "INVENIO_CACHE_TYPE=redis"
       - "INVENIO_CELERY_BROKER_URL=amqp://guest:guest@mq:5672/"
       - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
-      - "INVENIO_SEARCH_ELASTIC_HOSTS=['search:9200']"
+      - "INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL=redis://cache:6379/4"
+      - "INVENIO_SEARCH_HOSTS=['search:9200']"
       - "INVENIO_SECRET_KEY=CHANGE_ME"
       - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${DATAREP_DB_USER}:${DATAREP_DB_PASSWORD}@db/${DATAREP_DB}"
       - "INVENIO_WSGI_PROXIES=2"
@@ -167,7 +168,8 @@ services:
       - "INVENIO_CACHE_TYPE=redis"
       - "INVENIO_CELERY_BROKER_URL=amqp://guest:guest@mq:5672/"
       - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
-      - "INVENIO_SEARCH_ELASTIC_HOSTS=['search:9200']"
+      - "INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL=redis://cache:6379/4"
+      - "INVENIO_SEARCH_HOSTS=['search:9200']"
       - "INVENIO_SECRET_KEY=CHANGE_ME"
       - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${DATAREP_DB_USER}:${DATAREP_DB_PASSWORD}@db/${DATAREP_DB}"
       - "INVENIO_WSGI_PROXIES=2"
@@ -185,8 +187,39 @@ services:
       - "cache"
       - "db"
       - "mq"
-    extra_hosts:
-      - "sandbox-datarep-fe.ct.int.ingv.it:172.22.122.100"
+    # extra_hosts:
+    #   - "${DATAREP_FQDN}:${DATAREP_INT_IP}"
+
+  # Job Scheduler
+  scheduler:
+    image: oedatarep/oedatarep-invenio-rdm:${IMAGE_TAG}
+    networks:
+      - default
+    environment:
+      - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
+      - "INVENIO_BROKER_URL=amqp://guest:guest@mq:5672/"
+      - "INVENIO_CACHE_REDIS_URL=redis://cache:6379/0"
+      - "INVENIO_CACHE_TYPE=redis"
+      - "INVENIO_CELERY_BROKER_URL=amqp://guest:guest@mq:5672/"
+      - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
+      - "INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL=redis://cache:6379/4"
+      - "INVENIO_SEARCH_HOSTS=['search:9200']"
+      - "INVENIO_SECRET_KEY=CHANGE_ME"
+      - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${DATAREP_DB_USER}:${DATAREP_DB_PASSWORD}@db/${DATAREP_DB}"
+      - "INVENIO_WSGI_PROXIES=2"
+      - "INVENIO_RATELIMIT_STORAGE_URL=redis://cache:6379/3"
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.tier == frontend"
+    command: ["celery -A invenio_app.celery beat --scheduler invenio_jobs.services.scheduler:RunScheduler --loglevel=INFO"]
+    volumes:
+      - ./invenio.cfg:/opt/invenio/var/instance/invenio.cfg
+    depends_on:
+      - "db"
+      - "mq"
+
+
   init_invenio:
       image: oedatarep/oedatarep-invenio-rdm:${IMAGE_TAG}
       deploy:
@@ -209,7 +242,8 @@ services:
         - "INVENIO_CACHE_TYPE=redis"
         - "INVENIO_CELERY_BROKER_URL=amqp://guest:guest@mq:5672/"
         - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
-        - "INVENIO_SEARCH_ELASTIC_HOSTS=['es:9200']"
+        - "INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL=redis://cache:6379/4"
+        - "INVENIO_SEARCH_HOSTS=['search:9200']"
         - "INVENIO_SECRET_KEY=CHANGE_ME"
         - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${DATAREP_DB_USER}:${DATAREP_DB_PASSWORD}@db/${DATAREP_DB}"
         - "INVENIO_WSGI_PROXIES=2"
