@@ -1,0 +1,57 @@
+networks:
+  public_net:
+    external: true
+    name: oedatarep-public
+  default:
+    driver: overlay
+
+services:
+  tsd:
+    image: ghcr.io/ingv-oe-dev/tsdsystem/tsdsystem-app:${TSD_TAG}
+    tty: true
+    networks:
+      public_net:
+        aliases:
+          - tsd_service  # Alias DNS per Nginx e DATAREP stack
+      default:
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.tier == frontend"
+    environment:
+      DB_HOST: "${DB_HOST}"
+      DB_PORT: "${DB_PORT}"
+      DB_USER: "${TSD_DB_USER}"
+      DB_PASSWORD: "${TSD_DB_PASSWORD}"
+      DB_NAME: "${TSD_DB}"
+      SERVER_KEY: "${SERVER_KEY}"
+      APP_ALLOWED_HOSTS: "${APP_ALLOWED_HOSTS}"
+      ADMIN_ID: "${ADMIN_ID}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
+      ADMIN_EMAIL: "${ADMIN_EMAIL}"
+    depends_on:
+      - db
+
+  # DB specifico per TSD (TimescaleDB originale)
+  db:
+    image: ghcr.io/ingv-oe-dev/tsdsystem/tsdsystem-db:${TSD_TAG}
+    networks:
+      - default
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.tier == backend"
+    environment:
+      - "POSTGRES_USER=${DB_USER}"
+      - "POSTGRES_PASSWORD=${TSD_DB_PASSWORD}"
+      - "TSD_DB_USER=${TSD_DB_USER}"
+      - "TSD_DB_PASSWORD=${TSD_DB_PASSWORD}"
+      - "TSD_DB=${TSD_DB}"
+    ports:
+      - "5432" # Esposto solo internamente allo swarm
+    volumes:
+      - postgres_data:/home/postgres/pgdata/data
+
+volumes:
+  postgres_data:
