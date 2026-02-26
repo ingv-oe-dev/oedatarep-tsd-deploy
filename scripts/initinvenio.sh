@@ -17,7 +17,7 @@ TABLE_EXISTS=$(psql -h db -U ${DATAREP_DB_USER} -d ${DATAREP_DB} -tAc "SELECT EX
 
 if [ "$TABLE_EXISTS" = "f" ]; then
     echo "Database is empty. Proceed with initialization..."
-    
+
     # Init db and create tables
     /usr/local/bin/invenio db init
     /usr/local/bin/invenio db create
@@ -29,7 +29,7 @@ if [ "$TABLE_EXISTS" = "f" ]; then
     /usr/local/bin/invenio access allow superuser-access role admin
 
     /usr/local/bin/invenio files location create datalocation file:///opt/invenio/var/instance/data --default
-    
+
     echo "Database initialization completed."
 else
     echo "Database already initialized. Skipping creation of users tables."
@@ -42,5 +42,7 @@ echo "Index Search configuration..."
 /usr/local/bin/invenio rdm-records rebuild-index
 /usr/local/bin/invenio communities rebuild-index
 /usr/local/bin/invenio rdm-records fixtures
+/usr/local/bin/invenio rdm-records custom-fields init
+/usr/local/bin/invenio rdm rebuild-all-indices
 
 echo "==> Process ended with success!"s rebuild-index
