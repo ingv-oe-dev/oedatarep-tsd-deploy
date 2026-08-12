@@ -1,0 +1,43 @@
+export IMAGE_TAG=
+export TSD_TAG=
+export SERVER_KEY=
+
+export ADMIN_EMAIL=
+export ADMIN_PASSWORD=
+export ADMIN_ID=
+
+export PUBLIC_URL=
+
+export DB_HOST=
+export DB_PORT=
+export DB_USER=
+export DB_PASSWORD=
+
+export PGADMIN_EMAIL=
+export PGADMIN_PASSWORD=
+
+export TSD_DB=
+export TSD_DB_USER=
+export TSD_DB_PASSWORD=
+
+export DATAREP_DB=
+export DATAREP_DB_USER=
+export DATAREP_DB_PASSWORD=
+
+export IRDM_ADMIN_USER=
+export IRDM_ADMIN_PASSWORD=
+
+export SMTP_HOST=
+export SMTP_AUTH=
+export SMTP_SECURE=
+export SMTP_USERNAME=
+export SMTP_PASSWORD=
+
+export ENV=production
+
+export APP_ALLOWED_HOSTS=*
+
+export DATAREP_FQDN=
+export DATAREP_INT_IP=
+
+export OPENSEARCH_ADMIN_PASSWORD=

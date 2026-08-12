@@ -1,6 +1,0 @@
-[submodule "oedatarep-invenio-rdm"]
-	path = oedatarep-invenio-rdm
-	url = git@github.com:ingv-oe-dev/oedatarep-invenio-rdm.git
-[submodule "tsdsystem"]
-	path = tsdsystem
-	url = git@github.com:ingv-oe-dev/tsdsystem.git
