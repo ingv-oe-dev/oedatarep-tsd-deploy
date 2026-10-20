@@ -297,7 +297,7 @@ volumes:
   postgres_data:
   static_data:
     external: true
-    name: datarep_static_data
+    name: frontend_static_data
   uploaded_data:
   archived_data:
   os_data:
