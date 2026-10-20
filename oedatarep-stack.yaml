@@ -7,7 +7,7 @@ networks:
 
 services:
   db:
-    image: postgres:14.13
+    image: postgres:17.10
     networks:
       - default
     ports:
@@ -35,15 +35,22 @@ services:
 
   mq:
     image: rabbitmq:3-management
+    hostname: mq
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
     networks:
       - default
     deploy:
       placement:
         constraints:
           - "node.labels.tier == backend"
+    volumes:
+      - mq_data:/var/lib/rabbitmq
 
   search:
-    image: opensearchproject/opensearch:2.17.1
+    image: opensearchproject/opensearch:2.19.5
     networks:
       - default
     ports:
@@ -56,6 +63,12 @@ services:
       - "DISABLE_INSTALL_DEMO_CONFIG=true"
       - "DISABLE_SECURITY_PLUGIN=true"
       - "discovery.type=single-node"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200 >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
     ulimits:
       memlock:
         soft: -1
@@ -74,7 +87,7 @@ services:
       - os_data:/usr/share/opensearch/data
 
   opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards:2.17.1
+    image: opensearchproject/opensearch-dashboards:2.19.5
     networks:
       - default
     environment:
@@ -111,15 +124,18 @@ services:
       - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
       - "INVENIO_BROKER_URL=amqp://guest:guest@mq:5672/"
       - "INVENIO_CACHE_REDIS_URL=redis://cache:6379/0"
-      - "INVENIO_CACHE_TYPE=redis"
+      - "INVENIO_CACHE_TYPE=RedisCache"
       - "INVENIO_CELERY_BROKER_URL=amqp://guest:guest@mq:5672/"
       - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
       - "INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL=redis://cache:6379/4"
       - "INVENIO_SEARCH_HOSTS=['search:9200']"
       - "INVENIO_SECRET_KEY=CHANGE_ME"
       - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${DATAREP_DB_USER}:${DATAREP_DB_PASSWORD}@db/${DATAREP_DB}"
+      - "INVENIO_PROXYFIX_CONFIG={'x_for': 1, 'x_proto': 1}"
       - "INVENIO_WSGI_PROXIES=2"
       - "INVENIO_RATELIMIT_STORAGE_URL=redis://cache:6379/3"
+      - "INVENIO_SITE_UI_URL=https://127.0.0.1"
+      - "INVENIO_SITE_API_URL=https://127.0.0.1/api"
     deploy:
       placement:
         constraints:
@@ -143,15 +159,18 @@ services:
       - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
       - "INVENIO_BROKER_URL=amqp://guest:guest@mq:5672/"
       - "INVENIO_CACHE_REDIS_URL=redis://cache:6379/0"
-      - "INVENIO_CACHE_TYPE=redis"
+      - "INVENIO_CACHE_TYPE=RedisCache"
       - "INVENIO_CELERY_BROKER_URL=amqp://guest:guest@mq:5672/"
       - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
       - "INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL=redis://cache:6379/4"
       - "INVENIO_SEARCH_HOSTS=['search:9200']"
       - "INVENIO_SECRET_KEY=CHANGE_ME"
       - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${DATAREP_DB_USER}:${DATAREP_DB_PASSWORD}@db/${DATAREP_DB}"
+      - "INVENIO_PROXYFIX_CONFIG={'x_for': 1, 'x_proto': 1}"
       - "INVENIO_WSGI_PROXIES=2"
       - "INVENIO_RATELIMIT_STORAGE_URL=redis://cache:6379/3"
+      - "INVENIO_SITE_UI_URL=https://127.0.0.1"
+      - "INVENIO_SITE_API_URL=https://127.0.0.1/api"
     deploy:
       placement:
         constraints:
@@ -172,15 +191,18 @@ services:
       - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
       - "INVENIO_BROKER_URL=amqp://guest:guest@mq:5672/"
       - "INVENIO_CACHE_REDIS_URL=redis://cache:6379/0"
-      - "INVENIO_CACHE_TYPE=redis"
+      - "INVENIO_CACHE_TYPE=RedisCache"
       - "INVENIO_CELERY_BROKER_URL=amqp://guest:guest@mq:5672/"
       - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
       - "INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL=redis://cache:6379/4"
       - "INVENIO_SEARCH_HOSTS=['search:9200']"
       - "INVENIO_SECRET_KEY=CHANGE_ME"
       - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${DATAREP_DB_USER}:${DATAREP_DB_PASSWORD}@db/${DATAREP_DB}"
+      - "INVENIO_PROXYFIX_CONFIG={'x_for': 1, 'x_proto': 1}"
       - "INVENIO_WSGI_PROXIES=2"
       - "INVENIO_RATELIMIT_STORAGE_URL=redis://cache:6379/3"
+      - "INVENIO_SITE_UI_URL=https://127.0.0.1"
+      - "INVENIO_SITE_API_URL=https://127.0.0.1/api"
     deploy:
       placement:
         constraints:
@@ -206,15 +228,18 @@ services:
       - "INVENIO_ACCOUNTS_SESSION_REDIS_URL=redis://cache:6379/1"
       - "INVENIO_BROKER_URL=amqp://guest:guest@mq:5672/"
       - "INVENIO_CACHE_REDIS_URL=redis://cache:6379/0"
-      - "INVENIO_CACHE_TYPE=redis"
+      - "INVENIO_CACHE_TYPE=RedisCache"
       - "INVENIO_CELERY_BROKER_URL=amqp://guest:guest@mq:5672/"
       - "INVENIO_CELERY_RESULT_BACKEND=redis://cache:6379/2"
       - "INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL=redis://cache:6379/4"
       - "INVENIO_SEARCH_HOSTS=['search:9200']"
       - "INVENIO_SECRET_KEY=CHANGE_ME"
       - "INVENIO_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${DATAREP_DB_USER}:${DATAREP_DB_PASSWORD}@db/${DATAREP_DB}"
+      - "INVENIO_PROXYFIX_CONFIG={'x_for': 1, 'x_proto': 1}"
       - "INVENIO_WSGI_PROXIES=2"
       - "INVENIO_RATELIMIT_STORAGE_URL=redis://cache:6379/3"
+      - "INVENIO_SITE_UI_URL=https://127.0.0.1"
+      - "INVENIO_SITE_API_URL=https://127.0.0.1/api"
     deploy:
       placement:
         constraints:
@@ -276,3 +301,4 @@ volumes:
   uploaded_data:
   archived_data:
   os_data:
+  mq_data:
