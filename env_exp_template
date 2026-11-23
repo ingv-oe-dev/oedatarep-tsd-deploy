@@ -1,6 +1,7 @@
 export IMAGE_TAG=
 export TSD_TAG=
 export SERVER_KEY=
+export INVENIO_SITE_IP_BIND=
 
 export ADMIN_EMAIL=
 export ADMIN_PASSWORD=

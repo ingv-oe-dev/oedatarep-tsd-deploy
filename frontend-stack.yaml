@@ -33,7 +33,7 @@ services:
 volumes:
   static_data:
     external: true
-    name: datarep_static_data
+    name: frontend_static_data
 
 secrets:
   cert_v1:
